@@ -17,8 +17,9 @@ export class EmailChannel extends BaseChannel {
   _smtp() {
     return nodemailer.createTransport({
       host: 'smtp.gmail.com',
-      port: 465,
-      secure: true,
+      port: 587,
+      secure: false,
+      requireTLS: true,
       auth: { user: this.config.user, pass: this.config.password }
     });
   }
@@ -52,7 +53,6 @@ export class EmailChannel extends BaseChannel {
 
   async sendReply(messageId, body, { to, subject, inReplyTo } = {}) {
     const transport = this._smtp();
-    await transport.verify();
     const info = await transport.sendMail({
       from: this.config.user,
       to,
@@ -61,6 +61,7 @@ export class EmailChannel extends BaseChannel {
       inReplyTo,
       references: inReplyTo
     });
+    console.log('Email sent:', info.messageId);
     return { ok: true, messageId: info.messageId };
   }
 
