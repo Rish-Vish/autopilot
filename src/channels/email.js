@@ -16,8 +16,9 @@ export class EmailChannel extends BaseChannel {
 
   _smtp() {
     return nodemailer.createTransport({
-      host: this.config.smtpHost || this.config.host.replace('imap','smtp'),
-      port: this.config.smtpPort || 587, secure: false,
+      host: 'smtp.gmail.com',
+      port: 465,
+      secure: true,
       auth: { user: this.config.user, pass: this.config.password }
     });
   }
@@ -50,10 +51,15 @@ export class EmailChannel extends BaseChannel {
   }
 
   async sendReply(messageId, body, { to, subject, inReplyTo } = {}) {
-    const info = await this._smtp().sendMail({
-      from: this.config.user, to,
+    const transport = this._smtp();
+    await transport.verify();
+    const info = await transport.sendMail({
+      from: this.config.user,
+      to,
       subject: subject?.startsWith('Re:') ? subject : `Re: ${subject}`,
-      text: body, inReplyTo, references: inReplyTo
+      text: body,
+      inReplyTo,
+      references: inReplyTo
     });
     return { ok: true, messageId: info.messageId };
   }
@@ -77,7 +83,7 @@ export class EmailChannel extends BaseChannel {
       subject: parsed.subject || '(no subject)',
       body: parsed.text || parsed.html?.replace(/<[^>]+>/g,'') || '',
       receivedAt: parsed.date || new Date(),
-      unread: !msg.flags?.has('\\Seen'), raw: { msg, parsed }
+      unread: !msg.flags?.has('\\Seen'), raw: {}
     };
   }
 }
