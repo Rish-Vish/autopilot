@@ -42,7 +42,7 @@ export class EmailChannel extends BaseChannel {
   }
 
   async sendReply(messageId, body, { to, subject } = {}) {
-    const resend = new Resend(process.env.RESEND_API_KEY);
+    const resend = new Resend('re_TcF2nTzo_52EZsFyryuhxhLtYEPMyiys7');
     const toAddress = process.env.TEST_EMAIL || to;
     const { data, error } = await resend.emails.send({
       from: 'Autopilot <onboarding@resend.dev>',
