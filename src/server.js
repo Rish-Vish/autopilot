@@ -2,12 +2,12 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
-import dotenv from 'dotenv';
+
 import inboxRoutes from './routes/inbox.js';
 import aiRoutes from './routes/ai.js';
 import channelRoutes from './routes/channels.js';
 
-dotenv.config();
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
