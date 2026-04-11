@@ -1,5 +1,5 @@
 import { ImapFlow } from 'imapflow';
-import nodemailer from 'nodemailer';
+import { Resend } from 'resend';
 import { simpleParser } from 'mailparser';
 import { BaseChannel } from './base.js';
 
@@ -11,16 +11,6 @@ export class EmailChannel extends BaseChannel {
       host: this.config.host, port: this.config.port || 993,
       secure: true, auth: { user: this.config.user, pass: this.config.password },
       logger: false
-    });
-  }
-
-  _smtp() {
-    return nodemailer.createTransport({
-      host: 'smtp.gmail.com',
-      port: 587,
-      secure: false,
-      requireTLS: true,
-      auth: { user: this.config.user, pass: this.config.password }
     });
   }
 
@@ -51,18 +41,17 @@ export class EmailChannel extends BaseChannel {
     return messages.reverse();
   }
 
-  async sendReply(messageId, body, { to, subject, inReplyTo } = {}) {
-    const transport = this._smtp();
-    const info = await transport.sendMail({
-      from: this.config.user,
+  async sendReply(messageId, body, { to, subject } = {}) {
+    const resend = new Resend(process.env.RESEND_API_KEY);
+    const { data, error } = await resend.emails.send({
+      from: 'Autopilot <onboarding@resend.dev>',
       to,
       subject: subject?.startsWith('Re:') ? subject : `Re: ${subject}`,
-      text: body,
-      inReplyTo,
-      references: inReplyTo
+      text: body
     });
-    console.log('Email sent:', info.messageId);
-    return { ok: true, messageId: info.messageId };
+    if (error) throw new Error(error.message);
+    console.log('Email sent via Resend:', data.id);
+    return { ok: true, messageId: data.id };
   }
 
   async archiveMessage(uid, folder = 'INBOX') {
